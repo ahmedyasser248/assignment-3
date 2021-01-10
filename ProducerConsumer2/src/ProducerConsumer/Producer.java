@@ -8,43 +8,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 public class Producer {
     String name;
-    static int min = 1000;// 2 seconds
-    static int max = 18000;// 10 seconds
     private BlockingQueue< Product > ProductsQueue =
             new LinkedBlockingQueue< Product >();
-    ArrayList<Boolean>stateOfMachine =new ArrayList<>();
     private ExecutorService executorService =
             Executors.newCachedThreadPool();
     private List< Machine > Machines =
             new LinkedList< Machine >();
     private volatile boolean shutdownCalled = false;
-
-    public Producer(ArrayList<Machine>machines){
-            this.Machines=machines;
-            for (int i = 0 ; i< stateOfMachine.size();i++){
-                stateOfMachine.add(true);
-            }
-    }
     Producer(){
 
     }
 
     public void addMachine(Machine machine){
-        machine.setProducer(this);
-        stateOfMachine.add(true);
-        machine.setProductsQueue(ProductsQueue);
-       machine.number =Machines.size();
         Machines.add(machine);
-
     }
 
-    public void setProductsQueue(BlockingQueue<Product> productsQueue) {
-        ProductsQueue = productsQueue;
-    }
 
-    synchronized public void notifyProducer(int index){
-        stateOfMachine.set(index,true);
-    }
+
     synchronized public boolean sendToMachine(Product product)
     {
         if(!shutdownCalled)
@@ -53,9 +33,18 @@ public class Producer {
             {
                 ProductsQueue.put(product);
 
-                int index =stateOfMachine.indexOf(true);
+                int index =-1;
+                for(int i = 0 ; i < Machines.size();i++){
+                    if(Machines.get(i).Available){
+                        index=i;
+
+                        break;
+                    }
+                }
                 if(index!=-1){
-                stateOfMachine.set(index,false);
+                    Machines.get(index).setProducer(this);
+                    Machines.get(index).setProductsQueue(this.ProductsQueue);
+                    Machines.get(index).number=index;
                 executorService.execute(Machines.get(index));}
             }
             catch(InterruptedException ie)
@@ -80,40 +69,60 @@ public class Producer {
         executorService.shutdown();
     }
     public static void main(String [] args){
-        Producer producer1= new Producer();producer1.name="producer2";
-        Producer producer2= new Producer();producer2.name="producer3";
-        Machine mach7 = new Machine(9041);
-        Machine mach8 = new Machine(6027);
-        producer2.addMachine(mach7);
-        producer2.addMachine(mach8);
-        Machine mach4 = new Machine(9519);mach4.setOutput(producer2);
-        Machine mach5 = new Machine(9490);mach5.setOutput(producer2);
-        Machine mach6 = new Machine(5537);mach6.setOutput(producer2);
-        producer1.addMachine(mach4);
-        producer1.addMachine(mach5);
-        producer1.addMachine(mach6);
-        Machine mach = new Machine(13117);mach.setOutput(producer1);
-        Machine mach1 = new Machine(1000);mach1.setOutput(producer1);
-        Machine mach3 = new Machine(6435);mach3.setOutput(producer1);
-        Producer producer = new Producer();producer.name="producer1";
-        producer.addMachine(mach);
-        producer.addMachine(mach1);
-        producer.addMachine(mach3);
-        Product product1 = new Product();
-        Product product2 = new Product();
-        Product product3 = new Product();
-        Product product4 = new Product();
-        Product product5 = new Product();
-        product1.name="name1";
-        producer.sendToMachine(product1);
-        product2.name="name2";
-        producer.sendToMachine(product2);
-        product3.name="name3";
-        producer.sendToMachine(product3);
-        product4.name="name4";
-        producer.sendToMachine(product4);
-        product5.name="name5";
-        producer.sendToMachine(product5);
+        Product product1 = new Product();product1.name="product1";
+        Product product2= new Product();product2.name="product2";
+        Product product3 = new Product();product3.name="product3";
+        Product product4 =new Product();product4.name="product4";
+        Product product5=new Product();product5.name="product5";
+        Product product6 = new Product();product6.name="product6";
+        Product product7= new Product();product7.name="product7";
+        Product product8 = new Product();product8.name="product8";
+        Product product9 = new Product();product9.name="product9";
+        // products
+        Producer producer0= new Producer();producer0.name="producer0";
+        Producer producer1 = new Producer();producer1.name="producer1";
+        Producer producer2 = new Producer();producer2.name="producer2";
+        Producer producer3 = new Producer();producer3.name="producer3";
+        Producer producer4 = new Producer();producer4.name="producer4";
+        Producer producer5 = new Producer();producer5.name="producer5";
+        Machine machineA =new Machine(2335);
+        Machine machineB = new Machine(3555);
+        Machine machine1 = new Machine(1000);
+        Machine machine2 = new Machine(6435);
+        Machine machine3 = new Machine(13117);
+        Machine machine4= new Machine(9041);
+        Machine machine5 = new Machine(6027);
+        Machine machine6 = new Machine(5537);
+        producer0.addMachine(machineA);
+        producer0.addMachine(machineB);
+        producer1.addMachine(machine1);
+        producer2.addMachine(machine1);
+        producer2.addMachine(machine2);
+        producer2.addMachine(machine3);
+        producer3.addMachine(machine3);
+        producer3.addMachine(machine4);
+        machine1.setOutput(producer4);
+        machine2.setOutput(producer4);
+        machine3.setOutput(producer4);
+        machine4.setOutput(producer5);
+        producer5.addMachine(machine5);
+        producer4.addMachine(machine6);
+        machineA.setOutput(producer2);
+        machineB.setOutput(producer3);
+        //adding products
+        producer0.sendToMachine(product1);
+        producer0.sendToMachine(product2);
+        producer0.sendToMachine(product3);
+        producer0.sendToMachine(product4);
+        producer0.sendToMachine(product5);
+        producer1.sendToMachine(product6);
+        producer1.sendToMachine(product7);
+        producer1.sendToMachine(product8);
+        producer1.sendToMachine(product9);
+
+
+
+
         System.out.println("the producer has finished");
     }
 }

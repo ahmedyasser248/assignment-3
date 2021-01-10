@@ -4,6 +4,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class Machine implements Runnable{
+    boolean Available =true;
     int min = 1000;// 2 seconds
     int max = 18000;// 10 seconds
     long intervalSimulation;
@@ -28,17 +29,17 @@ public class Machine implements Runnable{
     }
 
     @Override
-    public void run() {
+    synchronized public void run() {
                     while (!productsQueue.isEmpty()) {
                         try {
-
+                            Available =false;
                             Product temp = productsQueue.poll(5, TimeUnit.SECONDS);
 
                             if (temp != null) {
                                 Thread.sleep(intervalSimulation);
                                 System.out.println(temp.name);
                                 System.out.println(producer.name+" the machine" + number);
-                                System.out.println("tmam y zmyly");
+                                System.out.println("- -- - -- - - - - -- -");
                                 if(output!=null){
                                     this.output.sendToMachine(temp);
                                 }
@@ -50,9 +51,14 @@ public class Machine implements Runnable{
                         }
 
                     }
-                    this.producer.notifyProducer(number);
+
+                    notifyProducers();
                     this.cancelExecution();
 
+
+    }
+    public void notifyProducers(){
+        this.Available =true;
     }
 
     public void setProducer(Producer producer){
