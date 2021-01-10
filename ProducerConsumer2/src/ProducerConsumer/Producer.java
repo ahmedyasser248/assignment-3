@@ -8,6 +8,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 public class Producer {
     String name;
+    static int min = 1000;// 2 seconds
+    static int max = 18000;// 10 seconds
     private BlockingQueue< Product > ProductsQueue =
             new LinkedBlockingQueue< Product >();
     ArrayList<Boolean>stateOfMachine =new ArrayList<>();
@@ -50,6 +52,7 @@ public class Producer {
             try
             {
                 ProductsQueue.put(product);
+
                 int index =stateOfMachine.indexOf(true);
                 if(index!=-1){
                 stateOfMachine.set(index,false);
@@ -79,19 +82,19 @@ public class Producer {
     public static void main(String [] args){
         Producer producer1= new Producer();producer1.name="producer2";
         Producer producer2= new Producer();producer2.name="producer3";
-        Machine mach7 = new Machine();
-        Machine mach8 = new Machine();
+        Machine mach7 = new Machine(9041);
+        Machine mach8 = new Machine(6027);
         producer2.addMachine(mach7);
         producer2.addMachine(mach8);
-        Machine mach4 = new Machine();mach4.setOutput(producer2);
-        Machine mach5 = new Machine();mach5.setOutput(producer2);
-        Machine mach6 = new Machine();mach6.setOutput(producer2);
+        Machine mach4 = new Machine(9519);mach4.setOutput(producer2);
+        Machine mach5 = new Machine(9490);mach5.setOutput(producer2);
+        Machine mach6 = new Machine(5537);mach6.setOutput(producer2);
         producer1.addMachine(mach4);
         producer1.addMachine(mach5);
         producer1.addMachine(mach6);
-        Machine mach = new Machine();mach.setOutput(producer1);
-        Machine mach1 = new Machine();mach1.setOutput(producer1);
-        Machine mach3 = new Machine();mach3.setOutput(producer1);
+        Machine mach = new Machine(13117);mach.setOutput(producer1);
+        Machine mach1 = new Machine(1000);mach1.setOutput(producer1);
+        Machine mach3 = new Machine(6435);mach3.setOutput(producer1);
         Producer producer = new Producer();producer.name="producer1";
         producer.addMachine(mach);
         producer.addMachine(mach1);
@@ -101,11 +104,16 @@ public class Producer {
         Product product3 = new Product();
         Product product4 = new Product();
         Product product5 = new Product();
-        producer.sendToMachine(product1);product1.name="name1";
-        producer.sendToMachine(product2);product2.name="name2";
-        producer.sendToMachine(product3);product3.name="name3";
-        producer.sendToMachine(product4);product4.name="name4";
-        producer.sendToMachine(product5);product5.name="name5";
+        product1.name="name1";
+        producer.sendToMachine(product1);
+        product2.name="name2";
+        producer.sendToMachine(product2);
+        product3.name="name3";
+        producer.sendToMachine(product3);
+        product4.name="name4";
+        producer.sendToMachine(product4);
+        product5.name="name5";
+        producer.sendToMachine(product5);
         System.out.println("the producer has finished");
     }
 }

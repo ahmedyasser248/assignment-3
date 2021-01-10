@@ -16,8 +16,8 @@ public class Machine implements Runnable{
     Machine(BlockingQueue<Product> products){
         this.productsQueue=products;
     }
-    Machine(){
-        this.intervalSimulation=(long)(Math.random() * (max - min + 1) + min );
+    Machine(long time){
+        this.intervalSimulation=time;
         System.out.println(intervalSimulation);
     }
     public void setOutput(Producer producer){
