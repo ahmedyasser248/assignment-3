@@ -51,6 +51,7 @@ public class Machine implements Runnable{
 
                     }
                     this.producer.notifyProducer(number);
+                    this.cancelExecution();
 
     }
 
