@@ -2,6 +2,8 @@ package sample;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
@@ -13,34 +15,52 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.paint.Color;
 import javafx.scene.input.MouseEvent;
 
+import java.beans.FeatureDescriptor;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class Main extends Application {
+    Button maButton = new Button("change");
+    Button machineButton = new Button("Add a Machine");
+    TextField Field = new TextField();
+    Button queueButton = new Button("Add a Queue");
+    Button joinButton = new Button("Join");
+    Button rootButton = new Button("Pick the beginning Q");
+    Button beginButton = new Button("Start Simulation");
+    Button endButton = new Button("Stop Simulation");
     private Shape[] shapes = new Shape[500];  // Contains shapes the user has drawn.
     private int shapeCount = 0; // Number of shapes that the user has drawn.
     private Canvas canvas; // The drawing area where the user draws.
     private Color currentColor = Color.WHITE;  // Color to be used for new shapes.
     private boolean joinn = false;
+    private boolean selectroot = false;
     private int joinfig = 0;
+    private int products = 0;
     public  ArrayList<Shape> joinXY = new ArrayList<Shape>();
+    public TreeNode root ;
+
 
     @Override
     /*Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("Hello World");
         primaryStage.setScene(new Scene(root, 300, 275));*/
     public void start(Stage stage) {
+
         canvas = makeCanvas();
         paintCanvas();
         StackPane canvasHolder = new StackPane(canvas);
         canvasHolder.setStyle("-fx-border-width: 1px; -fx-border-color: #444");
         BorderPane root = new BorderPane(canvasHolder);
         //root.setStyle("-fx-border-width: 1px; -fx-border-color: #000000");
-        root.setBottom(makeToolPanel(canvas));
+        root.setTop(makeToolPanel());
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.setTitle("Producer/Consumer");
         stage.setResizable(false);
         stage.show();
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+        a.setContentText("When joining figures >Join the right order please");
+        a.show();
     }
 
     private Canvas makeCanvas() {
@@ -55,11 +75,77 @@ public class Main extends Application {
     public void end(){
         System.out.println("hello");
     }
-    public void begin(){
-        System.out.println("hello22");
+    public void begin() {
+        if (this.joinXY.size() == 0) {
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setContentText("Put some machines and Queues and join them");
+            a.show();
+        } else {
+
+            ArrayList<TreeNode> Helper = new ArrayList<TreeNode>();
+
+            //this.root= new TreeNode(this.joinXY.get(0).hashCode(),this.joinXY.get(0)) ; //Assumption
+
+
+            for (int i = 0; i < this.joinXY.size(); i += 2) {
+
+                if (this.joinXY.get(i).hashCode() == this.root.shape.hashCode()) {
+                    TreeNode child = new TreeNode(this.joinXY.get(i + 1).hashCode(), this.joinXY.get(i + 1));
+                    this.root.addChild(child);
+
+                } else {
+                    TreeNode parent = new TreeNode(this.joinXY.get(i).hashCode(), this.joinXY.get(i));
+                    TreeNode child = new TreeNode(this.joinXY.get(i + 1).hashCode(), this.joinXY.get(i + 1));
+                    parent.addChild(child);
+                    Helper.add(parent);
+                }
+            }
+
+            while (!Helper.isEmpty()) {
+                for (TreeNode node : Helper) {
+                    TreeNode temp = root.FindNode(root, node.Code);
+                    if (temp != null) {
+                        temp.addChild(node.getChildren().get(0));
+                        Helper.remove(node);
+                        if (Helper.isEmpty()) break;
+                    }
+
+                }
+            }
+
+
+            //System.out.println(this.root.shape.hashCode());
+            //System.out.println(this.joinXY.get(2).hashCode());
+            System.out.println(this.root.shape);
+
+        }
     }
     public void join(){
         this.joinn=true;
+        machineButton.setDisable(true);
+        queueButton.setDisable(true);
+        beginButton.setDisable(true);
+        rootButton.setDisable(true);
+    }
+    public void first(){
+        this.selectroot = true;
+    }
+    public void textf(){
+        String pr=Field.getText();
+        if(pr.matches("\\d+")) {
+            products = Integer.parseInt(pr);
+            Field.clear();
+            System.out.println("number is " + products);
+        }else{
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setContentText("Only Numbers are allowed");
+            a.show();
+        }
+    }
+    public void change() throws InterruptedException {
+        shapes[0].setColor(Color.RED);
+        shapes[1].setColor(Color.BLUE);
+        paintCanvas();
     }
     public void gett(){
         if (this.joinfig%2==0){
@@ -77,39 +163,27 @@ public class Main extends Application {
                 g.stroke();
                 i++;
             }
-            //this.joinXY.clear();
-
         }
     }
 
-    private HBox makeToolPanel(Canvas canvas) {
-        // Make a pane containing the buttons that are used to add shapes
-        // and the pop-up menu for selecting the current color.
-        Button machineButton = new Button("Add a Machine");
+    private HBox makeToolPanel() {
+        maButton.setOnAction( (e) -> {
+            try {
+                change();
+            } catch (InterruptedException interruptedException) {
+                interruptedException.printStackTrace();
+            }
+        });
         machineButton.setOnAction( (e) -> addShape( new CircleShape() ) );
-        Button queueButton = new Button("Add a Queue");
         queueButton.setOnAction( (e) -> addShape( new RectShape() ) );
-        Button joinButton = new Button("Join");
         joinButton.setOnAction( (e) -> join());
-        Button beginButton = new Button("Start Simulation");
+        rootButton.setOnAction( (e) -> first() );
         beginButton.setOnAction( (e) -> begin()  );
-        Button endButton = new Button("Stop Simulation");
         endButton.setOnAction( (e) ->   end()  );
         ComboBox<String> combobox = new ComboBox<>();
         endButton.setStyle("-fx-background-color: Red");
         beginButton.setStyle("-fx-background-color: Green");
         combobox.setEditable(false);
-        /*if(this.joinn){
-            machineButton.setDisable(true);
-            queueButton.setDisable(true);
-            beginButton.setDisable(true);
-            endButton.setDisable(true);
-        }else{
-            machineButton.setDisable(false);
-            queueButton.setDisable(false);
-            beginButton.setDisable(false);
-            endButton.setDisable(false);
-        }*/
         Color[] colors = { Color.RED, Color.GREEN, Color.BLUE, Color.CYAN,
                 Color.MAGENTA, Color.YELLOW, Color.BLACK, Color.WHITE };
         String[] colorNames = { "Red", "Green", "Blue", "Cyan",
@@ -118,13 +192,18 @@ public class Main extends Application {
         combobox.setValue("White");
         combobox.setOnAction(
                 e -> currentColor = colors[combobox.getSelectionModel().getSelectedIndex()] );
+        Field.setPromptText("number of products");
+        Field.setOnAction( (e) -> textf() );
         HBox tools = new HBox(10);
         tools.getChildren().add(machineButton);
+        //tools.getChildren().add(maButton);
         tools.getChildren().add(queueButton);
         tools.getChildren().add(joinButton);
+        tools.getChildren().add(rootButton);
         tools.getChildren().add(beginButton);
         tools.getChildren().add(endButton);
-        tools.getChildren().add(combobox);
+        tools.getChildren().add(Field);
+        //tools.getChildren().add(combobox);
         tools.setStyle("-fx-border-width: 5px; -fx-border-color: transparent; -fx-background-color: lightgray");
         return tools;
     }
@@ -178,13 +257,41 @@ public class Main extends Application {
         for ( int i = shapeCount - 1; i >= 0; i-- ) {  // check shapes from front to back
             Shape s = shapes[i];
             if (s.containsPoint(x,y)) {
+                if(this.selectroot==true){
+                    if(s.isInstance("CircleShape")){
+                        this.selectroot=false;
+                        Alert a = new Alert(Alert.AlertType.ERROR);
+                        a.setContentText("Only Queue can be selected>>Press the Button again to select");
+                        a.show();
+                    }else {
+                        this.root = new TreeNode(s.hashCode(), s);
+                        System.out.println("bu ic tmam");
+                        this.selectroot = false;
+                    }
+                }else{
                 if(this.joinn){
                     this.joinfig++;
-                    this.joinXY.add(s);
+                    if(this.joinXY.size()==0) {
+                        this.joinXY.add(s);
+                    }else{
+                        Shape temp = this.joinXY.get(this.joinXY.size()-1);
+                        System.out.println(this.joinXY.size());
+                        if(this.joinXY.size()%2!=0){
+                            if(temp.hashCode() == s.hashCode()){
+                                this.joinXY.remove(this.joinXY.size()-1);
+                            }else{
+                                this.joinXY.add(s);
+                            }
+                        }else{
+                            this.joinXY.add(s);
+                        }
+                        System.out.println(this.joinXY.size());
+                    }
+
                     shapeBeingjoined=s;
                 }else {
                     shapeBeingDragged = s;
-                }
+                }}
                 prevDragX = x;
                 prevDragY = y;
                 if (evt.isShiftDown()) { // s should be moved on top of all the other shapes
@@ -219,6 +326,12 @@ public class Main extends Application {
         // User has released the mouse.  Move the dragged shape, then set
         // shapeBeingDragged to null to indicate that dragging is over.
         shapeBeingDragged = null;
+        if(!this.joinn){
+            machineButton.setDisable(false);
+            queueButton.setDisable(false);
+            beginButton.setDisable(false);
+            rootButton.setDisable(false);
+        }
 
     }
     public static void main(String[] args) {

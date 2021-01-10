@@ -53,7 +53,9 @@ public abstract class Shape {
                 return false;
         }
          abstract void draw(GraphicsContext g);
-        // Draw the shape in the graphics context g.
+
+    public abstract boolean isInstance(String rectShape);
+    // Draw the shape in the graphics context g.
         // This must be overriden in any concrete subclass.
 
     }  // end of class Shape
@@ -73,7 +75,15 @@ public abstract class Shape {
             g.setStroke(Color.BLACK);
             g.strokeRect(left,top,width,height);
         }
-    }
+
+         @Override
+         public boolean isInstance(String rectShape) {
+            if(rectShape.equals("RectShape")){
+                return true;
+            }
+             return false;
+         }
+     }
 
 
      class CircleShape extends Shape {
@@ -91,7 +101,16 @@ public abstract class Shape {
             g.strokeOval(left,top,width,height);
 
         }
-        boolean containsPoint(int x, int y) {
+
+         @Override
+         public boolean isInstance(String circleShape) {
+             if(circleShape.equals("CircleShape")){
+                 return true;
+             }
+             return false;
+         }
+
+         boolean containsPoint(int x, int y) {
             double rx = width/2.0;   // horizontal radius of ellipse
             double ry = height/2.0;  // vertical radius of ellipse
             double cx = left + rx;   // x-coord of center of ellipse

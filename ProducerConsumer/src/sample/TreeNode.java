@@ -2,32 +2,39 @@ package sample;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 
-public class TreeNode<T> {
-    private final List<TreeNode<T>> children;
-    private List<TreeNode<T>> parent;
-    private T data;
-    private TreeNode selectedNode;
+public class TreeNode  {
+     public  List<TreeNode> children;
+     public List<TreeNode> parent;
+     public long Code;
+     public Shape shape;
+     private TreeNode selectedNode;
    
-    public TreeNode(T data) {
+    public TreeNode() {
+    	
+    }
+    
+    public TreeNode(long code,Shape shape) {
       
         this.children = new ArrayList<>();
         this.parent = null;
-        this.data = data;
+        this.Code = code;
+        this.shape=shape;
         
     }
 
-    public TreeNode(T data, List<TreeNode<T>> parent) {
+    public TreeNode(long data, TreeNode  parent) {
     
         this.children = new ArrayList<>();
-        this.data = data;
-        this.parent = parent;
+        this.Code = data;
+        this.parent.add(parent);
         
-        for(int i=0;i<parent.size();i++) parent.get(i).addChild(this);   	
+        parent.addChild(this);   	
     }
 
-    public void inorder(TreeNode node,T data)
+    public void inorder(TreeNode root,TreeNode node,long data)
     {
         if (node == null)
             return ;
@@ -36,49 +43,49 @@ public class TreeNode<T> {
         int total = node.getChildren().size();
         // 
         for (int i = 0; i < total - 1; i++)
-            inorder((TreeNode) node.getChildren().get(i),data);
+            inorder(root,(TreeNode) node.getChildren().get(i),data);
  
         // Print the current node's data
-        if(node.getData().equals(data)) this.selectedNode=node;
+        if(node.getCode()==data) root.selectedNode=node;
  
-         inorder((TreeNode) node.getChildren().get(total - 1),data);
+         inorder(root,(TreeNode) node.getChildren().get(total - 1),data);
     }
     
     
-    public TreeNode GetNode (TreeNode root,T data){
-    	inorder(root,data);
-    	return this.selectedNode;
+    public TreeNode GetNode (TreeNode root,long Code){
+    	inorder(root,root,Code);
+    	return root.selectedNode;
     }
     
-    public List<TreeNode<T>> getChildren() {
+    public List<TreeNode> getChildren() {
         return children;
     }
 
-    public void addParent(TreeNode<T> parent) {
+    public void addParent(TreeNode  parent) {
         
         parent.addChild(this);   
         this.parent.add(parent) ;
     }
     
-    public List<TreeNode<T>> getParent() {
+    public List<TreeNode> getParent() {
         return this.parent;
     }
 
-    public void addChild(T data) {
-        TreeNode<T> child = new TreeNode<>(data);
+    public void addChild(Shape shape) {
+        TreeNode  child = new TreeNode(shape.hashCode(),shape);
         this.children.add(child);
     }
 
-    public void addChild(TreeNode<T> child) {
+    public void addChild(TreeNode  child) {
         this.children.add(child);
     }
 
-    public T getData() {
-        return this.data;
+    public long getCode() {
+        return this.Code;
     }
 
-    public void setData(T data) {
-        this.data = data;
+    public void setCode(long data) {
+        this.Code = data;
     }
 
     public boolean isRootNode() {
@@ -92,6 +99,45 @@ public class TreeNode<T> {
     public void removeParent() {
         this.parent = null;
     }
+    
+    public TreeNode FindNode(TreeNode root ,Long Code) 
+    {
+         
+        // Stack to store the nodes
+        Stack<TreeNode> nodes = new Stack<>();
+     
+        // push the current node onto the stack
+        nodes.push(root);
+     
+        // Loop while the stack is not empty
+        while (!nodes.isEmpty()) 
+        {
+             
+            // Store the current node and pop
+            // it from the stack
+            TreeNode curr = nodes.pop();
+     
+            // Current node has been travarsed
+            if (curr != null)
+            {
+                if(curr.Code==Code) {
+                	return curr;
+                }
+     
+                // Store all the childrent of 
+                // current node from right to left.
+                for(int i = curr.children.size() - 1; i >= 0; i--) 
+                {
+                    nodes.add(curr.children.get(i));
+                } 
+            }
+        }
+		return null;
+    }
+    
+    
+    
+    
 
 
 }
