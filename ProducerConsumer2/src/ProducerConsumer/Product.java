@@ -1,6 +1,7 @@
 package ProducerConsumer;
 
 public class Product {
+
     private int number ;
     String name ;
     public void process() throws InterruptedException {
