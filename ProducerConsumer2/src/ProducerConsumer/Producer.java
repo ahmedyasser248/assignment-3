@@ -1,21 +1,31 @@
 package ProducerConsumer;
+import SnapShot.CareTaker;
+import SnapShot.Originator;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
+import sample.Shape;
+import sample.TreeNode;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-public class Producer {
+import java.util.concurrent.*;
+
+public class Producer implements Subject{
     String name;
-    private BlockingQueue< Product > ProductsQueue =
+    public BlockingQueue< Product > ProductsQueue =
             new LinkedBlockingQueue< Product >();
     private ExecutorService executorService =
             Executors.newCachedThreadPool();
     private List< Machine > Machines =
             new LinkedList< Machine >();
     private volatile boolean shutdownCalled = false;
-    Producer(){
+
+    public long producerNum;
+
+    public Producer(){
 
     }
 
@@ -24,8 +34,7 @@ public class Producer {
     }
 
 
-
-    synchronized public boolean sendToMachine(Product product)
+    public synchronized boolean sendToMachine(Product product, TreeNode root, Canvas canvas, int shapeCount, Shape[] shapes, ArrayList<Shape> joinXY)
     {
         if(!shutdownCalled)
         {
@@ -36,16 +45,20 @@ public class Producer {
                 int index =-1;
                 for(int i = 0 ; i < Machines.size();i++){
                     if(Machines.get(i).Available){
+                        Machines.get(i).Available = false;
                         index=i;
 
                         break;
                     }
                 }
                 if(index!=-1){
+                    //Machines.get(index).Available = false;
                     Machines.get(index).setProducer(this);
                     Machines.get(index).setProductsQueue(this.ProductsQueue);
                     Machines.get(index).number=index;
-                executorService.execute(Machines.get(index));}
+                    Machines.get(index).setRoot(root);
+                    Machines.get(index).setGraph(canvas,shapeCount,shapes,joinXY);
+                    executorService.execute(Machines.get(index));}
             }
             catch(InterruptedException ie)
             {
@@ -68,62 +81,73 @@ public class Producer {
 
         executorService.shutdown();
     }
-    public static void main(String [] args){
-        Product product1 = new Product();product1.name="product1";
-        Product product2= new Product();product2.name="product2";
-        Product product3 = new Product();product3.name="product3";
-        Product product4 =new Product();product4.name="product4";
-        Product product5=new Product();product5.name="product5";
-        Product product6 = new Product();product6.name="product6";
-        Product product7= new Product();product7.name="product7";
-        Product product8 = new Product();product8.name="product8";
-        Product product9 = new Product();product9.name="product9";
-        // products
-        Producer producer0= new Producer();producer0.name="producer0";
-        Producer producer1 = new Producer();producer1.name="producer1";
-        Producer producer2 = new Producer();producer2.name="producer2";
-        Producer producer3 = new Producer();producer3.name="producer3";
-        Producer producer4 = new Producer();producer4.name="producer4";
-        Producer producer5 = new Producer();producer5.name="producer5";
-        Machine machineA =new Machine(2335);
-        Machine machineB = new Machine(3555);
-        Machine machine1 = new Machine(1000);
-        Machine machine2 = new Machine(6435);
-        Machine machine3 = new Machine(13117);
-        Machine machine4= new Machine(9041);
-        Machine machine5 = new Machine(6027);
-        Machine machine6 = new Machine(5537);
-        producer0.addMachine(machineA);
-        producer0.addMachine(machineB);
-        producer1.addMachine(machine1);
-        producer2.addMachine(machine1);
-        producer2.addMachine(machine2);
-        producer2.addMachine(machine3);
-        producer3.addMachine(machine3);
-        producer3.addMachine(machine4);
-        machine1.setOutput(producer4);
-        machine2.setOutput(producer4);
-        machine3.setOutput(producer4);
-        machine4.setOutput(producer5);
-        producer5.addMachine(machine5);
-        producer4.addMachine(machine6);
-        machineA.setOutput(producer2);
-        machineB.setOutput(producer3);
-        //adding products
-        producer0.sendToMachine(product1);
-        producer0.sendToMachine(product2);
-        producer0.sendToMachine(product3);
-        producer0.sendToMachine(product4);
-        producer0.sendToMachine(product5);
-        producer1.sendToMachine(product6);
-        producer1.sendToMachine(product7);
-        producer1.sendToMachine(product8);
-        producer1.sendToMachine(product9);
+
+    public void start(Originator originator, CareTaker careTaker, TreeNode root ,int products,Canvas canvas,
+                      int shapeCount, Shape[] shapes, ArrayList<Shape> joinXY,ArrayList<Button> buttons,
+                      TextField Field){
+        ArrayList<Color> color = new ArrayList<>();
+        color.add(Color.RED);
+        color.add(Color.YELLOW);
+        color.add(Color.BLUE);
+        color.add(Color.GREEN);
+        color.add(Color.GREY);
+        color.add(Color.CYAN);
+        color.add(Color.PINK);
+        color.add(Color.AQUA);
+        color.add(Color.BROWN);
+        color.add(Color.SKYBLUE);
+        ArrayList<Color> chosenColors = new ArrayList<>();
+        for (int i=0; i<products;i++){
+            chosenColors.add(color.get((int)(Math.random() * (8 - 0 + 1) + 0 )));
+        }
+        int min = 6000;// 2 seconds
+        int max = 15000;// 10 seconds
+        ArrayList<Long> time = new ArrayList<Long>();
+        for (int i=0; i<root.numberOfMachines;i++){
+            time.add( (long)(Math.random() * (max - min + 1) + min ));
+        }
+        Thread t1 = new Thread(new myRun(originator,careTaker,time,root,products,canvas
+                ,shapeCount,shapes,joinXY,buttons,chosenColors,Field));
+        t1.start();
 
 
-
-
-        System.out.println("the producer has finished");
     }
+
+    public void replay(Originator originator, CareTaker careTaker, TreeNode root, int products, Canvas canvas,
+                       int shapeCount, Shape[] shapes, ArrayList<Shape> joinXY, ArrayList<Button> buttons,
+                       TextField Field){
+        ArrayList<Long> time2 = new ArrayList<Long>();
+        for (int i=0; i<root.numberOfMachines;i++){
+            originator.getStateFromMemento(careTaker.get(i));
+            time2.add(originator.getState());
+        }
+        ArrayList<Color> colors = new ArrayList<>();
+        for (int i=0; i<products;i++){
+            originator.getColorsFromMemento(careTaker.getColor(i));
+            colors.add(originator.getColors());
+        }
+        originator = new Originator();
+        careTaker = new CareTaker();
+        Thread t2 = new Thread(new myRun(originator,careTaker,time2,root,products,canvas,shapeCount,
+                shapes,joinXY,buttons,colors,Field));
+        t2.start();
+
+    }
+
+
+    public static void main(String [] args){
+        /*
+        Originator originator = new Originator();
+        CareTaker careTaker = new CareTaker();
+        TreeNode root = new TreeNode();
+        //new Producer().start(originator,careTaker,root);
+        System.out.println("25iraaaaaan");
+        //new Producer().replay(originator,careTaker,root);
+        System.out.println("elhamdullah");
+
+         */
+    }
+
+
 }
 
