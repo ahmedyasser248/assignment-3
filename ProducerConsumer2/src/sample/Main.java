@@ -252,6 +252,9 @@ public class Main extends Application {
         this.savedProduct = 0;
     }
     public void replay(){
+
+        if (this.root==null)
+            return;
         machineButton.setDisable(true);
         queueButton.setDisable(true);
         maButton.setDisable(true);
@@ -260,8 +263,7 @@ public class Main extends Application {
         rootButton.setDisable(true);
         joinButton.setDisable(true);
         Field.setDisable(true);
-        if (this.root==null)
-            return;
+        canvas.setDisable(true);
         ArrayList<Button> buttons = new ArrayList<>();
         buttons.add(machineButton);
         buttons.add(joinButton);
